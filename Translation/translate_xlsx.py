@@ -75,11 +75,11 @@ def Translate(input_file, output_file, target_language="en"):
 if __name__ == "__main__":
     # 设置输入和输出文件路径
 
-    # input_path = "chatlogAI.xlsx"
-    # output_path = "chatlogAI_translated.xlsx"
+    input_path = "chatlogAI.xlsx"
+    output_path = "chatlogAI_translated.xlsx"
 
-    input_path = "chatlogHM.xlsx"
-    output_path = "chatlogHM_translated.xlsx"
+    # input_path = "chatlogHM.xlsx"
+    # output_path = "chatlogHM_translated.xlsx"
 
     print("=" * 60)
     print("Excel Translation Script")
