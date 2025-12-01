@@ -1,7 +1,6 @@
 import pandas as pd
 from os import environ
 from openai import OpenAI
-import json
 from pydantic import BaseModel
 
 
@@ -15,20 +14,19 @@ informDGP = [True] #[True, False]
 client = OpenAI(api_key=environ.get('OPENAI_API_KEY'))
 
 MODEL = "gpt-4o"
-TEMP = 1  # gpt-5 仅支持默认值1
+TEMP = 1
 
 class Prediction(BaseModel):
-    mean: str
-    lower_bound: str
-    upper_bound: str
-
+    mean: float
+    lower_bound: float
+    upper_bound: float
 
 for level in PIlevel:
     for inform in informDGP:
         SystemPROMPT = (
-                "You are forecasting a univariate time series generated from an AR(1) process. "
+                "You are forecasting a univariate time series"
                 + (
-                    f"The data-generating process (DGP) is:\n"
+                    f"The data-generating process (DGP) is generated from an AR(1) process:\n"
                     f"  x_t = {mu} + {rho} * (x_(t-1) - {mu}) + ε_t,\n"
                     f"where ε_t are i.i.d. normal shocks with mean 0 and standard deviation {sigma}, "
                     f"i.e., ε_t ~ N(0, {sigma}^2). "
@@ -40,36 +38,14 @@ for level in PIlevel:
                 "\n"
                 "INTERVAL DEFINITION:\n"
                 "When the user requests an X% prediction interval (e.g., 95%), ALWAYS interpret it strictly as:\n"
-                "  “The future true value x_{t+1} has X% probability of falling inside this interval.”\n"
-                "This is the CENTRAL X% PREDICTION INTERVAL, constructed by trimming equal probability from both tails.\n"
-                "\n"
-                "Mathematically:\n"
-                "  p_low  = (1 - X/100) / 2\n"
-                "  p_high = 1 - p_low\n"
-                "  lower_bound = Quantile[p_low]  of your predictive distribution for x_{t+1}\n"
-                "  upper_bound = Quantile[p_high] of your predictive distribution for x_{t+1}\n"
-                "\n"
-                "Examples:\n"
-                "  95% → (0.025, 0.975)\n"
-                "  75% → (0.125, 0.875)\n"
-                "  50% → (0.25,  0.75)\n"
-                "  25% → (0.375, 0.625)\n"
-                "  5%  → (0.475, 0.525)\n"
-                "\n"
-                "DO NOT reinterpret X% as α or (1−α). DO NOT confuse prediction intervals with confidence intervals.\n"
-                "\n"
-                "OUTPUT FORMAT:\n"
-                "Respond ONLY in valid JSON with the keys:\n"
-                "  'mean', 'lower_bound', 'upper_bound'\n"
-                "Ensure: lower_bound ≤ upper_bound.\n"
+                " “The future true value x_{t+1} has X% probability of falling inside this interval.”\n"
+                "Output the point forecast, the lower_bound and the upper_bound of the forecast\n"
         )
 
-
         csv_path = "dgp_01.csv"
-
         df = pd.read_csv(csv_path)
-
         x_data = df[df['Period'] <= 40]['x_t'].tolist()
+
         UserPROMPT = f"""
                         Here are the most recent 40 observations of a univariate time series (ordered from t=1 to t=40):
                         {x_data}
@@ -89,12 +65,8 @@ for level in PIlevel:
                               upper_bound = Quantile(p_high) of your predictive distribution for x_41
                 
                            This is a PREDICTION INTERVAL: the true future value x_41 must have {level}% probability of falling inside it.
-                           Do NOT reinterpret {level}% as 100 - {level}%. Do NOT convert to alpha.
-                              
-                        Restrictions:
-                        - Output must be valid JSON only, no explanations.
-                        - Ensure lower_bound ≤ upper_bound.
                 """
+
         all_results = []
         #多次预测
         for pred_num in range(1, num_predictions + 1):
@@ -111,14 +83,17 @@ for level in PIlevel:
                 )
 
                 # 获取响应内容
-                print("completion", completion)
+                print("completion: ", completion)
                 print(completion.output_text)
                 print(type(completion.output_text))
+
                 response_content = completion.output_parsed
                 print("prediction: ", response_content)
 
 
                 prediction = completion.output_parsed  # 类型：Prediction
+                mean = prediction.mean
+                print("\nmean: ", mean)
 
                 record = prediction.model_dump()       # 用model_dump() 方法将class转换成dict
                 record["prediction_round"] = pred_num  # 加一个额外字段
