@@ -43,31 +43,35 @@ class Prediction(BaseModel):
 ##############################################
 
 ############# PROMPT ##################
+
+    #"如果双方有提前chat交流，或者有进行trasnfer，就会有一定的概率被罚款（fine）"
+
 SystemPROMPT = (
-    "我将发送给你一个经济学实验中的参与者之间的聊天记录；该经济学实验是一个两个人（player1 和player2）为一组的auction实验。 两个参与者都有各自的，只能自己看到的，对于拍卖的商品的value（評価額）,"
+    "我将发送给你一个经济学实验中的参与者之间的聊天记录；该经济学实验是一个两个人（player1 和player2）为一组的first price auction实验。 两个参与者都有各自的，只能自己看到的，对于拍卖的商品的value（評価額）,"
     "在双方入札之前，双方可以选择进行进行chat交流；入札之后，bid价高者胜，获得商品，其收益为:評価額-出价bid；同时，胜者也可以选择将收益（payoff）中的一部分（transfer）分给败者"
     "现在，请帮我分析聊天记录，并提取一些关键信息:"
-    "-player1是否告知自己的准确的評価額（一个数字）：player1_whether_inform_exact_self_value"
-    "-player2是否告知自己的准确的評価額（一个数字）：player2_whether_inform_exact_self_value"
+    "-player1是否告知自己的評価額（一个数字）：player1_whether_inform_exact_self_value"
+    "-player2是否告知自己的評価額（一个数字）：player2_whether_inform_exact_self_value"
     "-player1是否告知自己的評価額的区间：player1_whether_inform_value_interval"
     "-player2是否告知自己的評価額的区间：player2_whether_inform_value_interval"
-    "-如果player1有告知自己的准确的評価額，那么这个准确的評価額是多少 (如果没有的话则返回-1)：player1_inform_exact_self_value"
-    "-如果player2有告知自己的准确的評価額，那么这个准确的評価額是多少 (如果没有的话则返回-1)：player2_inform_exact_self_value"
+    "-如果player1有告知自己的評価額，那么这个評価額是多少 (如果没有的话则返回-1)：player1_inform_exact_self_value"
+    "-如果player2有告知自己的評価額，那么这个評価額是多少 (如果没有的话则返回-1)：player2_inform_exact_self_value"
     "-如果player1有告知自己的評価額的区间，那么这个区间是多少(如果没有的话则返回-1)：player1_inform_value_interval_minbound, player1_inform_value_interval_maxbound"
     "-如果player2有告知自己的評価額的区间，那么这个区间是多少(如果没有的话则返回-1)：player2_inform_value_interval_minbound, player2_inform_value_interval_maxbound"
     "-player1是否告诉对方自己的之后的bid(一个数字)：player1_whether_inform_exact_self_bid"
     "-player2是否告诉对方自己的之后的bid(一个数字)：player2_whether_inform_exact_self_bid"
     "-player1是否告诉对方自己的之后的bid区间：player1_whether_inform_bid_interval"
     "-player2是否告诉对方自己的之后的bid区间：player2_whether_inform_bid_interval"
-    "-如果player1有告诉对方自己的之后的bid，那么这个准确的bid是多少(如果没有的话则返回-1)：player1_inform_exact_self_bid"
-    "-如果player2有告诉对方自己的之后的bid，那么这个准确的bid是多少(如果没有的话则返回-1)：player2_inform_exact_self_bid"
+    "-如果player1有告诉对方自己的之后的bid，那么这个bid是多少(如果没有的话则返回-1)：player1_inform_exact_self_bid"
+    "-如果player2有告诉对方自己的之后的bid，那么这个bid是多少(如果没有的话则返回-1)：player2_inform_exact_self_bid"
+    "-注意：这里的bid是出价，而不是payoff（利得）"
     "-如果player1有告诉对方自己的之后的bid区间，那么这个区间是多少(如果没有的话则返回-1)：player1_inform_bid_interval_minbound, player1_inform_bid_interval_maxbound"
     "-如果player2有告诉对方自己的之后的bid区间，那么这个区间是多少(如果没有的话则返回-1)：player2_inform_bid_interval_minbound, player2_inform_bid_interval_maxbound"
     "-双方是否提前决定winner(如果没有提前决定返回-1，如果决定是either one则返回0，如果决定是player1则返回1，如果决定是player2则返回2)：Whether_Pre_Decide_Winner"
     "-当双方提前决定winner的时候，判断约定胜者给败者transfer的format, 返回following的五个选项之一，'50% of the payoff'/ 'Exact number' /'Interval'/'Some points (not specific)'/'Nothing(not mentioned or no pre-decided winner)': Pre_Decide_Winner_Committed_Transfer_Format"
     "-胜者约定的给败者transfer的具体金额数字是多少(如果没有返回-1)：Pre_Decide_Winner_Committed_Transfer_Number"
     "-胜者约定的给败者transfer的具体金额数字的区间是多少(如果没有返回-1)：Pre_Decide_Winner_Committed_Transfer_interval_minbound, Pre_Decide_Winner_Committed_Transfer_interval_maxbound"
-    "-判断是否双方有勾结(比如使用一些「共謀に誓います」、「協力します」等等可以表示双方有在勾结Collusion的象征或者象征)(如果没有返回-1，如果不确定则返回0，如果有勾结则返回1)：Whether_Collusion"
+    "-判断是否双方有勾结(比如双方有提前决定winner，或者使用一些「共謀に誓います」、「協力します」等等可以表示双方有在勾结Collusion的象征或者象征)(如果没有返回-1，如果不确定则返回0，如果有勾结则返回1)：Whether_Collusion"
 )
 
 # 读取CSV文件
@@ -89,7 +93,8 @@ for target_channel_id in range(1, 6):
         body = str(row['body'])
         chat_lines.append(f"{role}: {body}")
 
-    UserPROMPT = "\n".join(chat_lines)
+    print(chat_lines)
+    UserPROMPT = "\n".join(chat_lines) #将列表转换为单个字符串，每条聊天记录占一行
 
     print(f"Processing Channel {target_channel_id}...")
 
@@ -120,17 +125,14 @@ for target_channel_id in range(1, 6):
     print(f"Channel {target_channel_id} prediction collected.")
 
 # 将所有结果转换为 DataFrame 并保存为 CSV
-if all_predictions:
-    result_df = pd.DataFrame(all_predictions)
-    # 将 ChannelID 放到第一列
-    cols = ['ChannelID'] + [col for col in result_df.columns if col != 'ChannelID']
-    result_df = result_df[cols]
-    
-    output_filename = 'predictions_output.csv'
-    result_df.to_csv(output_filename, index=False)
-    print(f"\nAll predictions saved to {output_filename}")
-else:
-    print("No predictions generated.")
+result_df = pd.DataFrame(all_predictions)
+# 将 ChannelID 放到第一列
+cols = ['ChannelID'] + [col for col in result_df.columns if col != 'ChannelID']
+result_df = result_df[cols]
+
+output_filename = 'predictions_output.csv'
+result_df.to_csv(output_filename, index=False)
+print(f"\nAll predictions saved to {output_filename}")
 
 
 
