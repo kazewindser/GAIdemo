@@ -15,69 +15,57 @@ TEMP = 1
 class Prediction(BaseModel):
     Your_Proposal: int=Field(ge=0, le=100)
 
-
-
-
 ##############################################
 
 ############# PROMPT ##################
 
 SystemPROMPT = (
-    "You are a strategic bargaining game AI. Respond only with a number."
-    "You are the proposer in a 3-stage alternating-offers bargaining game over 100 points."
-    "Your goal: Maximize your own discounted payoff. Your opponent is human。"
-    
-    "- Total points to divide: 100"
-    "- Your role: Proposal"
-    "- Current stage: 1 out of 3"
-    "- Your discount rate at this stage: 0"
-    "- Opponent's discount rate: 0"
-    
-
-    "Rules:"
-               
-    "- You propose how many points to give to your opponent (0-100)"
-    "- You keep the remaining points"
-    "- If the offer is rejected by your opponent, the game moves to the next stage with higher discounts"
-    "- 同时双发角色互换，你成为responder，用户成为proposer"
+    "You are a strategic bargaining game AI.\n"
+    "Return output in a structured format that matches the given schema.\n"
+    "You are the proposer in a 3-stage alternating-offers bargaining game over 100 points.\n"
+    "Goal: maximize your own discounted payoff.\n"
+    "\n"
+    "Current situation:\n"
+    "- Total points to divide: 100\n"
+    "- Your role: Proposer\n"
+    "- Current stage: 1 out of 3\n"
+    "- Your discount rate at this stage: 0\n"
+    "- Opponent's discount rate: 0\n"
+    "\n"
+    "Rules:\n"
+    "- You propose how many points to give to your opponent (0-100)\n"
+    "- You keep the remaining points\n"
+    "\n"
+    "- If rejected, the game moves to the next stage with higher discounts and roles switch\n"
+    "- Your role will change to Responder\n"
+    "- Your discount rate will change to 0.4\n"
+    "- Opponent's discount rate will change to 0.6\n"
 )
 
-UserPROMPT = ("Based on current situation, what points would you offer to your opponent?"
-    "Please respond with ONLY a integer between 0 and 100: Your_Proposal"
-              )
-
+UserPROMPT = (
+    "Answer using the schema:\n"
+    "- Your_Proposal: integer in [0, 100] (points you give to the opponent)\n"
+)
 
 all_predictions = []
 
-# 循环处理 ChannelID 1 到 5
-for i in range(1, 4):
-    ##############################################
-
+for round_idx in range(1, 1001):
     response = client.responses.parse(
         model=MODEL,
         input=[
-            {"role": "system",
-             "content": SystemPROMPT},
-            {"role": "user",
-             "content": UserPROMPT}
+            {"role": "system", "content": SystemPROMPT},
+            {"role": "user", "content": UserPROMPT},
         ],
         temperature=TEMP,
         text_format=Prediction,
     )
 
-    response_content = response.output_parsed
+    prediction = response.output_parsed
+    all_predictions.append(prediction.model_dump())
 
-    # 将 Pydantic 对象转换为字典
-    prediction_dict = response_content.model_dump()
-
-    all_predictions.append(prediction_dict)
-
-
-# 将所有结果转换为 DataFrame 并保存为 CSV
 result_df = pd.DataFrame(all_predictions)
 
-
-output_filename = 'Proposal.csv'
+output_filename = "Proposal.csv"
 result_df.to_csv(output_filename, index=False)
 print(f"\nAll predictions saved to {output_filename}")
 
