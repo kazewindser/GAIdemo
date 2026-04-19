@@ -94,7 +94,7 @@ for i in range(130):
     })
 
 # Save to CSV
-csv_filename = 'AI_opening_offers.csv'
+csv_filename = 'AI_opening_offers2.csv'
 with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
     fieldnames = ['trial', 'Offer_to_P2_stage1', 'Reason']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
