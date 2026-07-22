@@ -1,0 +1,210 @@
+{{ extends "global/Page.html" }}
+{{ load static otree }}
+
+{{ block app_styles }}
+
+
+<!-- load Roboto font -->
+<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,400italic,500,500italic,700,700italic,900italic,900' rel='stylesheet' type='text/css'>
+  
+<style>
+
+  /* -------------------- global oTree styles -------------------- */
+
+  /* body */
+  .otree-body {
+    max-width: 1200px;
+    min-width: 1000px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    padding: 20px;
+  }
+
+  /* timer */
+  .otree-timer {
+    display: none;
+  }
+
+
+  /* -------------------- div styles -------------------- */
+
+  /* general text box */
+  .textBox {
+    background: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 30px;
+    height: 65vh;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .chat_messages {
+    height: 100%;
+  }
+
+  .inputBox {
+    position: relative;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 15px 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .typeInputBox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .typeInputBox input[type="text"] {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 15px;
+    font-family: 'Roboto', sans-serif;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .typeInputBox input[type="text"]:focus {
+    border-color: #00d2ff;
+    box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
+  }
+
+  .typeInputBox button {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+  }
+
+  .typeInputBox button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 210, 255, 0.4);
+  }
+
+  .typeInputBox button:active {
+    transform: translateY(0);
+  }
+
+  /* -------------------- text span styles -------------------- */
+
+  .selfText {
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    color: white;
+    display: inline-block;
+    position: relative;
+    left: 100%;
+    transform: translateX(-100%);
+    text-align: left;
+    margin-bottom: 12px;
+    padding: 14px 18px;
+    border-radius: 20px 20px 5px 20px;
+    max-width: 70%;
+    font-size: 15px;
+    line-height: 1.5;
+    box-shadow: 0 2px 10px rgba(0, 210, 255, 0.3);
+    word-wrap: break-word;
+    animation: slideInRight 0.3s ease;
+  }
+
+  .botText {
+    background: #f0f2f5;
+    color: #333;
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 14px 18px;
+    border-radius: 20px 20px 20px 5px;
+    max-width: 70%;
+    font-size: 15px;
+    line-height: 1.5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    word-wrap: break-word;
+    animation: slideInLeft 0.3s ease;
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-80%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* -------------------- button styles -------------------- */
+
+  input[type=button] {
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    border: none;
+    color: white;
+    font-size: 15px;
+    padding: 10px 20px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+
+  input[type=button]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+  }
+
+  .textBox::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .textBox::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    border-radius: 10px;
+  }
+
+  .textBox::-webkit-scrollbar-track {
+    background: #f0f2f5;
+    border-radius: 10px;
+  }
+
+  /* Title styling */
+  .otree-title {
+    color: white;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+</style>
+
+{{ endblock }}
